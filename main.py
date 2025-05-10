@@ -295,25 +295,25 @@ def simulate_fsm(fsm, action_type):
             ("NEAR_BALL", "GO_TO_BALL"),
             ("ALIGNED", "ALIGN"),
             ("BALL_KICKED", "PASS"),
-            ("BALL_RECEIVED", "SUCCESS")  
+            ("BALL_RECEIVED", "SUCCESS", 0.85)  # Probabilité de 85%
         ],
         "Shoot": [
             ("NEAR_BALL", "GO_TO_BALL"),
             ("ALIGNED", "ALIGN_GOAL"),
             ("BALL_KICKED", "SHOOT"),
-            ("GOAL_SCORED", "GOAL")  
+            ("GOAL_SCORED", "GOAL", 0.1)  # Probabilité de 70%
         ],
         "Block": [
             ("START", "CALCULATE_POSITION"),
             ("POSITION_CALCULATED", "GO_TO_POSITION"),
             ("POSITION_REACHED", "BLOCK"),
-            ("BLOCKING_EFFECTIVE", "BLOCKING_SUCCESS")  
+            ("BLOCKING_EFFECTIVE", "BLOCKING_SUCCESS", 0.9)  # Probabilité de 90%
         ],
         "Intercept": [
             ("START", "CALCULATE_TRAJECTORY"),
             ("TRAJECTORY_CALCULATED", "GO_TO_INTERCEPT_POSITION"),
             ("INTERCEPT_POSITION_REACHED", "INTERCEPT"),
-            ("BALL_INTERCEPTED", "INTERCEPTION_SUCCESS")  
+            ("BALL_INTERCEPTED", "INTERCEPTION_SUCCESS", 0.75)  # Probabilité de 75%
         ]
     }
     
@@ -329,12 +329,23 @@ def simulate_fsm(fsm, action_type):
         sequence = sequences["Pass"]
     
     print("\nProposed event sequence:")
-    for i, (event, next_state) in enumerate(sequence):
-        print(f"{i+1}. {event} -> {next_state}")
+    for i, event_info in enumerate(sequence):
+        if len(event_info) == 2:
+            event, next_state = event_info
+            print(f"{i+1}. {event} -> {next_state}")
+        else:
+            event, next_state, prob = event_info
+            print(f"{i+1}. {event} -> {next_state} (Probability: {prob*100:.0f}%)")
     
     print("\nPress Enter to progress in the simulation, or type 'q' to quit.")
     
-    for event, expected_state in sequence:
+    for event_info in sequence:
+        if len(event_info) == 2:
+            event, expected_state = event_info
+            prob = None
+        else:
+            event, expected_state, prob = event_info
+        
         input_val = input(f"\nPress Enter to send event '{event}', or type 'q' to quit: ")
         
         if input_val.lower() == 'q':
@@ -343,18 +354,40 @@ def simulate_fsm(fsm, action_type):
         
         print(f"Event sent: {event}")
         
-        final_reached = fsm.process_event(event)
+        force_failure_state = False
+        failure_state_name = None
         
-        print(f"State after event: {fsm.current_state.name}")
+        if prob and event in ["BALL_RECEIVED", "GOAL_SCORED", "BLOCKING_EFFECTIVE", "BALL_INTERCEPTED"]:
+            import random
+            random.seed()  
+            success_roll = random.random()
+            print(f"Probability check: {prob*100:.0f}% chance of success")
+            print(f"Random roll: {success_roll*100:.2f}%")
+            
+            if success_roll < prob:
+                print(f"Result: Success! The action will succeed")
+            else:
+                print(f"Result: Failure! The action will fail")
+                failure_state_mapping = {
+                    "BALL_RECEIVED": "FAILURE",
+                    "GOAL_SCORED": "MISSED",
+                    "BLOCKING_EFFECTIVE": "BLOCKING_FAILURE",
+                    "BALL_INTERCEPTED": "INTERCEPTION_FAILURE"
+                }
+                
+                force_failure_state = True
+                failure_state_name = failure_state_mapping.get(event, None)
+                expected_state = failure_state_name
         
-        if fsm.current_state.is_final:
-            result = "Success" if fsm.current_state.is_success else "Failure"
-            print(f"Simulation ended: {result}")
-            break
-    
-    print("\nState history:")
-    print(" -> ".join(fsm.history + [fsm.current_state.name]))
-
+        fsm.process_event(event)
+        
+        if force_failure_state and failure_state_name and failure_state_name in fsm.states:
+            print("-" * 50)
+            print(f"Action performed: {fsm.current_state.name}")
+            print(f"Outcome: Failed")
+            print(f"Transitioning to: {failure_state_name}")
+            print("-" * 50)
+            fsm.current_state = fsm.states[failure_state_name]
 def export_fsm_to_text(fsm, filename="fsm_export.txt"):
     """
     Exports FSM to text format.

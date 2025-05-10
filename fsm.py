@@ -1,3 +1,5 @@
+import random
+
 class State:
     def __init__(self, name, action=None, is_final=False, is_success=False):
         """
@@ -91,10 +93,9 @@ class FSM:
         if not possible_transitions:
             return False
         
-        # Just take the first matching transition
         transition = possible_transitions[0]
+
         self.current_state = transition.target_state
-        
         return self.current_state.is_final
     
     def reset(self):
