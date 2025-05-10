@@ -1,13 +1,13 @@
 class State:
     def __init__(self, name, action=None, is_final=False, is_success=False):
         """
-        Initialise un état.
+        Initialize a state.
         
-        Argument:
-            name (str): Nom de l'état
-            action (callable, optZional): Action à exécuter dans cet état
-            is_final (bool): Indique si c'est un état final
-            is_success (bool): Indique si c'est un état de succès (pertinent si is_final=True)
+        Args:
+            name (str): Name of the state
+            action (callable, optional): Action to execute in this state
+            is_final (bool): Indicates if this is a final state
+            is_success (bool): Indicates if this is a success state (relevant if is_final=True)
         """
         self.name = name
         self.action = action
@@ -16,7 +16,7 @@ class State:
         self.transitions = [] 
     
     def add_transition(self, transition):
-        """Ajoute une transition sortante à l'état"""
+        """Add an outgoing transition to the state"""
         self.transitions.append(transition)
     
     def __str__(self):
@@ -26,12 +26,12 @@ class State:
 class Transition:
     def __init__(self, target_state, condition, probability=1.0):
         """
-        Initialise une transition.
+        Initialize a transition.
         
-        Argument:
-            target_state (State): État cible de la transition
-            condition (callable): Fonction qui évalue si la transition doit être prise
-            probability (float): Probabilité que la transition réussisse (entre 0 et 1)
+        Args:
+            target_state (State): Target state of the transition
+            condition (callable): Function that evaluates if the transition should be taken
+            probability (float): Probability that the transition succeeds (between 0 and 1)
         """
         self.target_state = target_state
         self.condition = condition
@@ -39,13 +39,13 @@ class Transition:
     
     def should_transition(self, event):
         """
-        Vérifie si la transition doit être prise en fonction de l'événement.
+        Check if the transition should be taken based on the event.
         
-        Argument:
-            event (str): Événement à évaluer
+        Args:
+            event (str): Event to evaluate
             
-        Return:
-            bool: True si la transition doit être prise, False sinon
+        Returns:
+            bool: True if the transition should be taken, False otherwise
         """
         return self.condition(event)
 
@@ -53,7 +53,7 @@ class Transition:
 class FSM:
     def __init__(self, initial_state):
         """
-        Initialise la FSM avec un état initial.
+        Initialize the FSM with an initial state.
         """
         self.states = {initial_state.name: initial_state}
         self.current_state = initial_state
@@ -62,19 +62,19 @@ class FSM:
     
     def add_state(self, state):
         """
-        Ajoute un état à la FSM.
+        Add a state to the FSM.
         """
         self.states[state.name] = state
     
     def process_event(self, event):
         """
-        Traite un événement et effectue la transition appropriée.
+        Process an event and perform the appropriate transition.
         
-        Argument:
-            event (str): Événement à traiter
+        Args:
+            event (str): Event to process
             
-        Return:
-            bool: True si la FSM a atteint un état final, False sinon
+        Returns:
+            bool: True if the FSM has reached a final state, False otherwise
         """
         self.history.append(self.current_state.name)
         
@@ -111,13 +111,13 @@ class FSM:
         return False
     
     def reset(self):
-        """Réinitialise la FSM à son état initial"""
+        """Reset the FSM to its initial state"""
         self.current_state = self.initial_state
         self.history = []
     
     def display(self):
-        """Affiche la FSM sous forme de liste dans la console"""
-        print("États de la FSM:")
+        """Display the FSM as a list in the console"""
+        print("FSM States:")
         for state in self.states.items():
             print(f"  {state}")
             for i, transition in enumerate(state.transitions):
