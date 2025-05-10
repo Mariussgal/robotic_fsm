@@ -1,4 +1,5 @@
-from fsm import FSM, State, Transition, random
+from fsm import FSM, State, Transition
+import random
 import robot_actions as ra
 
 def create_simple_pass_fsm():
