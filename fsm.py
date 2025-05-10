@@ -118,7 +118,7 @@ class FSM:
     def display(self):
         """Display the FSM as a list in the console"""
         print("FSM States:")
-        for state in self.states.items():
+        for name, state in self.states.items():
             print(f"  {state}")
             for i, transition in enumerate(state.transitions):
                 print(f"    Transition {i+1} -> {transition.target_state.name} (Prob: {transition.probability})")

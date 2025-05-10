@@ -165,10 +165,7 @@ def display_fsm_with_explanation(fsm, action_type):
     """
     Displays the FSM with a natural language explanation.
     """
-    print(f"\nFSM generated for: {action_type}")
-    fsm.display()
-    
-    # Add natural language explanation
+
     print("\nExplanation of this FSM:")
     
     if "Pass" in action_type:
