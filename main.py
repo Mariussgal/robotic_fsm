@@ -5,8 +5,8 @@ import robot_actions as ra
 def create_simple_pass_fsm(target_robot="R2"):
     initial = State("INITIAL", None)
     go_to_ball_state = State("GO_TO_BALL", lambda e: ra.go_to_ball("R1"))
-    align_state = State("ALIGN", lambda e: ra.align_with_target("R1", "R2"))
-    pass_state = State("PASS", lambda e: ra.pass_ball("R1", "R2"))
+    align_state = State("ALIGN", lambda e: ra.align_with_target("R1", target_robot))
+    pass_state = State("PASS", lambda e: ra.pass_ball("R1", target_robot))
     success_state = State("SUCCESS", None, is_final=True, is_success=True)
     failure_state = State("FAILURE", None, is_final=True, is_success=False)
     
