@@ -2,7 +2,6 @@ from fsm import FSM, State, Transition, random
 import robot_actions as ra
 
 def create_simple_pass_fsm():
-
     initial = State("INITIAL", None)
     go_to_ball_state = State("GO_TO_BALL", lambda e: ra.go_to_ball("R1"))
     align_state = State("ALIGN", lambda e: ra.align_with_target("R1", "R2"))
@@ -33,7 +32,7 @@ def create_simple_pass_fsm():
 
 def create_shoot_fsm():
     """
-    FSM pour un tir au but.
+    FSM for shooting at goal.
     """
     initial = State("INITIAL", None)
     go_to_ball_state = State("GO_TO_BALL", lambda e: ra.go_to_ball("R1"))
@@ -42,11 +41,11 @@ def create_shoot_fsm():
     goal_state = State("GOAL", None, is_final=True, is_success=True)
     missed_state = State("MISSED", None, is_final=True, is_success=False)
     
-    # Création des transitions
+    # Create transitions
     t1 = Transition(go_to_ball_state, ra.is_near_ball)
     t2 = Transition(align_goal_state, ra.is_aligned)
     t3 = Transition(shoot_state, ra.ball_kicked)
-    t4 = Transition(goal_state, lambda e: e == "GOAL_SCORED", probability=1.0)  # 100% au lieu de 70%
+    t4 = Transition(goal_state, lambda e: e == "GOAL_SCORED", probability=1.0)  # 100% instead of 70%
     t5 = Transition(missed_state, lambda e: e == "SHOT_MISSED", probability=1.0)
     
     initial.add_transition(t1)
@@ -66,11 +65,11 @@ def create_shoot_fsm():
 
 def create_block_fsm(target_robot="R3"):
     """
-    FSM pour bloquer un robot adverse.
+    FSM for blocking an opponent robot.
     """
     initial = State("INITIAL", None)
-    calc_pos_state = State("CALCULATE_POSITION", lambda e: print(f"Calcul de la position pour bloquer {target_robot}"))
-    go_to_pos_state = State("GO_TO_POSITION", lambda e: print(f"Robot R1 se déplace vers la position de blocage"))
+    calc_pos_state = State("CALCULATE_POSITION", lambda e: print(f"Calculating position to block {target_robot}"))
+    go_to_pos_state = State("GO_TO_POSITION", lambda e: print(f"Robot R1 moves to blocking position"))
     block_state = State("BLOCK", lambda e: ra.block_robot("R1", target_robot))
     success_state = State("BLOCKING_SUCCESS", None, is_final=True, is_success=True)
     failure_state = State("BLOCKING_FAILURE", None, is_final=True, is_success=False)
@@ -98,12 +97,12 @@ def create_block_fsm(target_robot="R3"):
 
 def create_intercept_fsm():
     """
-    FSM pour intercepter la balle.
+    FSM for intercepting the ball.
     """
     initial = State("INITIAL", None)
-    calc_trajectory_state = State("CALCULATE_TRAJECTORY", lambda e: print("Calcul de la trajectoire de la balle"))
-    go_to_intercept_state = State("GO_TO_INTERCEPT_POSITION", lambda e: print("Robot R1 se déplace vers la position d'interception"))
-    intercept_state = State("INTERCEPT", lambda e: print("Robot R1 tente d'intercepter la balle"))
+    calc_trajectory_state = State("CALCULATE_TRAJECTORY", lambda e: print("Calculating ball trajectory"))
+    go_to_intercept_state = State("GO_TO_INTERCEPT_POSITION", lambda e: print("Robot R1 moves to interception position"))
+    intercept_state = State("INTERCEPT", lambda e: print("Robot R1 attempts to intercept the ball"))
     success_state = State("INTERCEPTION_SUCCESS", None, is_final=True, is_success=True)
     failure_state = State("INTERCEPTION_FAILURE", None, is_final=True, is_success=False)
 
@@ -130,98 +129,97 @@ def create_intercept_fsm():
 
 def create_fsm_from_instruction(instruction):
     """
-    Crée FSM à partir d'une instruction textuelle.
-
+    Creates FSM from a text instruction.
     """
     instruction = instruction.lower().strip()
     
     if "pass" in instruction:
-        # Recherche robot cible (R1, R2, R3, etc.)
-        target = "R2"  # Par défaut
+        # Find target robot (R1, R2, R3, etc.)
+        target = "R2"  # Default
         for i in range(1, 10):
             if f"r{i}" in instruction:
                 target = f"R{i}"
                 break
-        return create_pass_fsm(), f"Passe au robot {target}"
+        return create_pass_fsm(), f"Pass to robot {target}"
     
     elif "shoot" in instruction or "goal" in instruction:
-        return create_shoot_fsm(), "Tir au but"
+        return create_shoot_fsm(), "Shoot at goal"
     
     elif "block" in instruction:
-        # Recherche robot à bloquer
-        target = "R3"  # Par défaut
+        # Find robot to block
+        target = "R3"  # Default
         for i in range(1, 10):
             if f"r{i}" in instruction:
                 target = f"R{i}"
                 break
-        return create_block_fsm(target), f"Blocage du robot {target}"
+        return create_block_fsm(target), f"Block robot {target}"
     
     elif "intercept" in instruction:
-        return create_intercept_fsm(), "Interception de la balle"
+        return create_intercept_fsm(), "Intercept the ball"
     
     else:
-        return None, "Instruction non reconnue"
+        return None, "Unrecognized instruction"
 
 def display_fsm_with_explanation(fsm, action_type):
     """
-    Affiche la FSM avec une explication en langage naturel.
+    Displays the FSM with a natural language explanation.
     """
-    print(f"\nFSM générée pour: {action_type}")
+    print(f"\nFSM generated for: {action_type}")
     fsm.display()
     
-    # Ajouter une explication en langage naturel
-    print("\nExplication de cette FSM:")
+    # Add natural language explanation
+    print("\nExplanation of this FSM:")
     
-    if "Passe" in action_type:
-        print("1. Le robot commence dans l'état INITIAL")
-        print("2. Il va chercher la balle (GO_TO_BALL)")
-        print("3. Il s'aligne avec le robot cible (ALIGN)")
-        print("4. Il effectue la passe (PASS)")
-        print("5. Si la passe est réussie, il atteint l'état SUCCESS")
-        print("   Sinon, il atteint l'état FAILURE")
-    elif "Tir" in action_type:
-        print("1. Le robot commence dans l'état INITIAL")
-        print("2. Il va chercher la balle (GO_TO_BALL)")
-        print("3. Il s'aligne avec le but (ALIGN_GOAL)")
-        print("4. Il tire au but (SHOOT)")
-        print("5. Si le tir est réussi, il atteint l'état GOAL")
-        print("   Sinon, il atteint l'état MISSED")
-    elif "Blocage" in action_type:
-        print("1. Le robot commence dans l'état INITIAL")
-        print("2. Il calcule la position pour bloquer (CALCULATE_POSITION)")
-        print("3. Il se déplace vers cette position (GO_TO_POSITION)")
-        print("4. Il effectue le blocage (BLOCK)")
-        print("5. Si le blocage est efficace, il atteint l'état BLOCKING_SUCCESS")
-        print("   Sinon, il atteint l'état BLOCKING_FAILURE")
-    elif "Interception" in action_type:
-        print("1. Le robot commence dans l'état INITIAL")
-        print("2. Il calcule la trajectoire de la balle (CALCULATE_TRAJECTORY)")
-        print("3. Il se déplace vers la position d'interception (GO_TO_INTERCEPT_POSITION)")
-        print("4. Il tente d'intercepter la balle (INTERCEPT)")
-        print("5. Si l'interception réussit, il atteint l'état INTERCEPTION_SUCCESS")
-        print("   Sinon, il atteint l'état INTERCEPTION_FAILURE")
+    if "Pass" in action_type:
+        print("1. Robot starts in INITIAL state")
+        print("2. It goes to get the ball (GO_TO_BALL)")
+        print("3. It aligns with the target robot (ALIGN)")
+        print("4. It performs the pass (PASS)")
+        print("5. If the pass is successful, it reaches SUCCESS state")
+        print("   Otherwise, it reaches FAILURE state")
+    elif "Shoot" in action_type:
+        print("1. Robot starts in INITIAL state")
+        print("2. It goes to get the ball (GO_TO_BALL)")
+        print("3. It aligns with the goal (ALIGN_GOAL)")
+        print("4. It shoots at goal (SHOOT)")
+        print("5. If the shot is successful, it reaches GOAL state")
+        print("   Otherwise, it reaches MISSED state")
+    elif "Block" in action_type:
+        print("1. Robot starts in INITIAL state")
+        print("2. It calculates the blocking position (CALCULATE_POSITION)")
+        print("3. It moves to this position (GO_TO_POSITION)")
+        print("4. It performs the block (BLOCK)")
+        print("5. If the block is effective, it reaches BLOCKING_SUCCESS state")
+        print("   Otherwise, it reaches BLOCKING_FAILURE state")
+    elif "Intercept" in action_type:
+        print("1. Robot starts in INITIAL state")
+        print("2. It calculates the ball trajectory (CALCULATE_TRAJECTORY)")
+        print("3. It moves to the interception position (GO_TO_INTERCEPT_POSITION)")
+        print("4. It attempts to intercept the ball (INTERCEPT)")
+        print("5. If the interception succeeds, it reaches INTERCEPTION_SUCCESS state")
+        print("   Otherwise, it reaches INTERCEPTION_FAILURE state")
     
-    print("\nChaque transition entre états dépend d'événements spécifiques")
-    print("et a une certaine probabilité de réussite.")
+    print("\nEach transition between states depends on specific events")
+    print("and has a certain probability of success.")
 
 def get_instruction_with_help():
     """
-    Demande une instruction à l'utilisateur avec des exemples.
+    Asks for an instruction with examples.
     """
-    print("\nVeuillez entrer une instruction pour le robot.")
-    print("Exemples d'instructions valides:")
+    print("\nPlease enter an instruction for the robot.")
+    print("Valid instruction examples:")
     print("  - Pass the ball to R2")
     print("  - Shoot the ball into the goal")
     print("  - Block R3")
     print("  - Intercept the ball")
     
-    return input("\nVotre instruction: ")
+    return input("\nYour instruction: ")
 
 def text_visualize_fsm(fsm):
     """
-    Visualise FSM sous forme de texte ASCII.
+    Visualizes FSM as ASCII text.
     """
-    print("\nVisualisation de la FSM:")
+    print("\nFSM Visualization:")
     
     initial = fsm.initial_state
     finals = [state for state in fsm.states.values() if state.is_final]
@@ -254,7 +252,7 @@ def text_visualize_fsm(fsm):
                 print(f"    v         v")
                 state = success_states[0]
                 print(f"  [{state.name}] ✓    [{finals[1].name}] ✗")
-                print("  (Succès)    (Échec)")
+                print("  (Success)   (Failure)")
             else:
                 print("    |         |")
                 print(f"    v         v")
@@ -262,59 +260,58 @@ def text_visualize_fsm(fsm):
 
 def show_help_and_glossary():
     """
-    Affiche aide.
+    Shows help.
     """
-    print("\n=== Aide et Glossaire ===")
+    print("\n=== Help and Glossary ===")
     
-    print("\nConcepts clés:")
-    print("  FSM (Machine à États Finis) : Un modèle mathématique utilisé pour représenter")
-    print("  des systèmes qui peuvent être dans un nombre fini d'états distincts.")
-    print("\n  État : Une situation ou action dans laquelle le robot peut se trouver")
+    print("\nKey concepts:")
+    print("  FSM (Finite State Machine): A mathematical model used to represent")
+    print("  systems that can be in a finite number of distinct states.")
+    print("\n  State: A situation or action in which the robot can be")
     print("  (ex: GO_TO_BALL, ALIGN, PASS).")
-    print("\n  Transition : Un changement d'un état à un autre en réponse à un événement.")
-    print("\n  Événement : Un signal qui déclenche une transition (ex: NEAR_BALL, ALIGNED).")
+    print("\n  Transition: A change from one state to another in response to an event.")
+    print("\n  Event: A signal that triggers a transition (ex: NEAR_BALL, ALIGNED).")
     
-    print("\nTypes d'actions:")
-    print("  Passe : Le robot va chercher la balle et la passe à un autre robot.")
-    print("  Tir : Le robot va chercher la balle et tire au but.")
-    print("  Blocage : Le robot se positionne pour bloquer un adversaire.")
-    print("  Interception : Le robot calcule la trajectoire de la balle et tente de l'intercepter.")
+    print("\nTypes of actions:")
+    print("  Pass: Robot goes to get the ball and passes it to another robot.")
+    print("  Shoot: Robot goes to get the ball and shoots at goal.")
+    print("  Block: Robot positions itself to block an opponent.")
+    print("  Intercept: Robot calculates the ball trajectory and attempts to intercept it.")
     
-    print("\nNavigation dans le programme:")
-    print("  Menu principal : Permet de choisir les différentes fonctionnalités.")
-    print("  Simulation : Permet de voir le comportement du robot étape par étape.")
-    print("  Exportation : Permet de sauvegarder la FSM dans un fichier.")
+    print("\nProgram navigation:")
+    print("  Main menu: Allows choosing different features.")
+    print("  Simulation: Allows seeing robot behavior step by step.")
+    print("  Export: Allows saving the FSM to a file.")
     
-    input("\nAppuyez sur Entrée pour revenir au menu principal...")
+    input("\nPress Enter to return to main menu...")
 
 def simulate_fsm(fsm, action_type):
     """
-    Simule l'exécution d'une FSM selon une séquence prédéfinie d'événements.
+    Simulates FSM execution with a predefined sequence of events.
     """
-    print(f"\nSimulation de la FSM pour: {action_type}")
+    print(f"\nFSM simulation for: {action_type}")
     fsm.reset()  
     
-   
     sequences = {
-        "Passe": [
+        "Pass": [
             ("NEAR_BALL", "GO_TO_BALL"),
             ("ALIGNED", "ALIGN"),
             ("BALL_KICKED", "PASS"),
             ("BALL_RECEIVED", "SUCCESS")  
         ],
-        "Tir": [
+        "Shoot": [
             ("NEAR_BALL", "GO_TO_BALL"),
             ("ALIGNED", "ALIGN_GOAL"),
             ("BALL_KICKED", "SHOOT"),
             ("GOAL_SCORED", "GOAL")  
         ],
-        "Blocage": [
+        "Block": [
             ("START", "CALCULATE_POSITION"),
             ("POSITION_CALCULATED", "GO_TO_POSITION"),
             ("POSITION_REACHED", "BLOCK"),
             ("BLOCKING_EFFECTIVE", "BLOCKING_SUCCESS")  
         ],
-        "Interception": [
+        "Intercept": [
             ("START", "CALCULATE_TRAJECTORY"),
             ("TRAJECTORY_CALCULATED", "GO_TO_INTERCEPT_POSITION"),
             ("INTERCEPT_POSITION_REACHED", "INTERCEPT"),
@@ -322,114 +319,114 @@ def simulate_fsm(fsm, action_type):
         ]
     }
     
-    if "Passe" in action_type:
-        sequence = sequences["Passe"]
-    elif "Tir" in action_type:
-        sequence = sequences["Tir"]
-    elif "Blocage" in action_type:
-        sequence = sequences["Blocage"]
-    elif "Interception" in action_type:
-        sequence = sequences["Interception"]
+    if "Pass" in action_type:
+        sequence = sequences["Pass"]
+    elif "Shoot" in action_type:
+        sequence = sequences["Shoot"]
+    elif "Block" in action_type:
+        sequence = sequences["Block"]
+    elif "Intercept" in action_type:
+        sequence = sequences["Intercept"]
     else:
-        sequence = sequences["Passe"]
+        sequence = sequences["Pass"]
     
-    print("\nSéquence d'événements proposée:")
+    print("\nProposed event sequence:")
     for i, (event, next_state) in enumerate(sequence):
         print(f"{i+1}. {event} -> {next_state}")
     
-    print("\nAppuyez sur Entrée pour progresser dans la simulation, ou tapez 'q' pour quitter.")
+    print("\nPress Enter to progress in the simulation, or type 'q' to quit.")
     
     for event, expected_state in sequence:
-        input_val = input(f"\nAppuyez sur Entrée pour envoyer l'événement '{event}', ou tapez 'q' pour quitter: ")
+        input_val = input(f"\nPress Enter to send event '{event}', or type 'q' to quit: ")
         
         if input_val.lower() == 'q':
-            print("Simulation arrêtée.")
+            print("Simulation stopped.")
             break
         
-        print(f"Événement envoyé: {event}")
+        print(f"Event sent: {event}")
         
         random.seed(0)  
         
-        print(f"État actuel: {fsm.current_state.name}")
+        print(f"Current state: {fsm.current_state.name}")
         
         if fsm.current_state.name != expected_state:
-            print(f"Note: La transition vers {expected_state} ne s'est pas produite comme prévu.")
-            print("Cela peut être dû à la probabilité de transition ou à une condition incorrecte.")
+            print(f"Note: Transition to {expected_state} did not occur as expected.")
+            print("This may be due to transition probability or incorrect condition.")
             
-            if input("Voulez-vous forcer la transition vers l'état attendu? (o/n): ").lower() == "o":
+            if input("Do you want to force transition to expected state? (y/n): ").lower() == "y":
                 if expected_state in fsm.states:
                     fsm.current_state = fsm.states[expected_state]
-                    print(f"État actuel forcé à: {fsm.current_state.name}")
+                    print(f"Current state forced to: {fsm.current_state.name}")
         
         if fsm.current_state.is_final:
-            result = "Succès" if fsm.current_state.is_success else "Échec"
-            print(f"Simulation terminée: {result}")
+            result = "Success" if fsm.current_state.is_success else "Failure"
+            print(f"Simulation ended: {result}")
             break
     
     if not fsm.current_state.is_final:
-        print("\nLa séquence d'événements est terminée, mais la FSM n'a pas atteint un état final.")
+        print("\nEvent sequence is complete, but FSM has not reached a final state.")
         
         final_states = [name for name, state in fsm.states.items() if state.is_final]
         
-        if final_states and input("Voulez-vous forcer un état final? (o/n): ").lower() == "o":
-            print("\nÉtats finaux disponibles:")
+        if final_states and input("Do you want to force a final state? (y/n): ").lower() == "y":
+            print("\nAvailable final states:")
             for i, name in enumerate(final_states):
                 state = fsm.states[name]
-                result = "Succès" if state.is_success else "Échec"
+                result = "Success" if state.is_success else "Failure"
                 print(f"{i+1}. {name} ({result})")
             
             try:
-                choice = int(input("\nChoisissez un état final: "))
+                choice = int(input("\nChoose a final state: "))
                 if 1 <= choice <= len(final_states):
                     fsm.current_state = fsm.states[final_states[choice-1]]
-                    print(f"État final forcé à: {fsm.current_state.name}")
+                    print(f"Final state forced to: {fsm.current_state.name}")
             except ValueError:
-                print("Choix invalide.")
+                print("Invalid choice.")
     
-    print("\nHistorique des états:")
+    print("\nState history:")
     print(" -> ".join(fsm.history + [fsm.current_state.name]))
 
 def export_fsm_to_text(fsm, filename="fsm_export.txt"):
     """
-    Exporte la FSM au format texte.
+    Exports FSM to text format.
     """
     with open(filename, 'w') as f:
-        f.write("=== Export de la Machine à États Finis ===\n\n")
+        f.write("=== Finite State Machine Export ===\n\n")
         
-        f.write("États:\n")
-        for state_name, state in fsm.states.items():
+        f.write("States:\n")
+        for state in fsm.states.items():
             f.write(f"  - {state}\n")
             
             for i, transition in enumerate(state.transitions):
                 f.write(f"    Transition {i+1} -> {transition.target_state.name} (Prob: {transition.probability})\n")
         
-        f.write("\nÉtat initial: " + fsm.initial_state.name + "\n")
+        f.write("\nInitial state: " + fsm.initial_state.name + "\n")
     
-    print(f"FSM exportée avec succès dans le fichier '{filename}'")
+    print(f"FSM successfully exported to file '{filename}'")
 
 def create_pass_fsm():
     """
-    Alias pour create_simple_pass_fsm
+    Alias for create_simple_pass_fsm
     """
     return create_simple_pass_fsm()
 
 def main():
-    """Fonction principale du programme"""
-    print("\n=== Système de planification d'actions robotiques pour RoboCup SSL ===")
-    print("\nCe programme vous permet de générer et simuler des comportements robotiques")
-    print("pour des matchs de football, en utilisant des machines à états finis (FSM).")
-    print("\nChaque FSM représente une séquence d'actions qu'un robot peut exécuter,")
-    print("comme aller vers la balle, s'aligner, passer, tirer, etc.")
+    """Main program function"""
+    print("\n=== Robotic Action Planning System for RoboCup SSL ===")
+    print("\nThis program allows you to generate and simulate robotic behaviors")
+    print("for soccer matches using finite state machines (FSM).")
+    print("\nEach FSM represents a sequence of actions a robot can perform,")
+    print("such as going to the ball, aligning, passing, shooting, etc.")
     
     while True:
-        print("\nMenu principal:")
-        print("1. Générer une FSM à partir d'une instruction")
-        print("2. Simuler une FSM prédéfinie")
-        print("3. Exporter une FSM")
-        print("4. Aide et glossaire")
-        print("5. Quitter")
+        print("\nMain menu:")
+        print("1. Generate FSM from instruction")
+        print("2. Simulate predefined FSM")
+        print("3. Export FSM")
+        print("4. Help and glossary")
+        print("5. Quit")
         
-        choice = input("\nChoisissez une option: ")
+        choice = input("\nChoose an option: ")
         
         if choice == "1":
             instruction = get_instruction_with_help()
@@ -439,11 +436,11 @@ def main():
                 display_fsm_with_explanation(fsm, action_desc)
                 text_visualize_fsm(fsm)
                 
-                if input("\nVoulez-vous simuler cette FSM? (o/n): ").lower() == "o":
+                if input("\nDo you want to simulate this FSM? (y/n): ").lower() == "y":
                     simulate_fsm(fsm, action_desc)
                 
-                if input("\nVoulez-vous exporter cette FSM? (o/n): ").lower() == "o":
-                    filename = input("Nom du fichier d'exportation (défaut: fsm_export.txt): ")
+                if input("\nDo you want to export this FSM? (y/n): ").lower() == "y":
+                    filename = input("Export filename (default: fsm_export.txt): ")
                     if not filename:
                         filename = "fsm_export.txt"
                     export_fsm_to_text(fsm, filename)
@@ -451,49 +448,49 @@ def main():
                 print(f"\n{action_desc}")
         
         elif choice == "2":
-            print("\nChoisissez une FSM prédéfinie:")
-            print("1. Passe entre robots")
-            print("2. Tir au but")
-            print("3. Blocage d'un robot adverse")
-            print("4. Interception de la balle")
+            print("\nChoose a predefined FSM:")
+            print("1. Pass between robots")
+            print("2. Shoot at goal")
+            print("3. Block opponent robot")
+            print("4. Intercept ball")
             
-            fsm_choice = input("\nChoisissez une FSM: ")
+            fsm_choice = input("\nChoose a FSM: ")
             
             if fsm_choice == "1":
                 fsm = create_simple_pass_fsm()
-                action_desc = "Passe entre robots"
+                action_desc = "Pass between robots"
                 display_fsm_with_explanation(fsm, action_desc)
                 text_visualize_fsm(fsm)
                 simulate_fsm(fsm, action_desc)
             elif fsm_choice == "2":
                 fsm = create_shoot_fsm()
-                action_desc = "Tir au but"
+                action_desc = "Shoot at goal"
                 display_fsm_with_explanation(fsm, action_desc)
                 text_visualize_fsm(fsm)
                 simulate_fsm(fsm, action_desc)
             elif fsm_choice == "3":
                 fsm = create_block_fsm()
-                action_desc = "Blocage d'un robot adverse"
+                action_desc = "Block opponent robot"
                 display_fsm_with_explanation(fsm, action_desc)
                 text_visualize_fsm(fsm)
                 simulate_fsm(fsm, action_desc)
             elif fsm_choice == "4":
                 fsm = create_intercept_fsm()
-                action_desc = "Interception de la balle"
+                action_desc = "Intercept ball"
                 display_fsm_with_explanation(fsm, action_desc)
                 text_visualize_fsm(fsm)
                 simulate_fsm(fsm, action_desc)
             else:
-                print("Choix invalide.")
+                print("Invalid choice.")
         
         elif choice == "3":
-            print("\nExporter une FSM:")
-            print("1. Passe entre robots")
-            print("2. Tir au but")
-            print("3. Blocage d'un robot adverse")
-            print("4. Interception de la balle")
+            print("\nExport FSM:")
+            print("1. Pass between robots")
+            print("2. Shoot at goal")
+            print("3. Block opponent robot")
+            print("4. Intercept ball")
             
-            fsm_choice = input("\nChoisissez une FSM à exporter: ")
+            fsm_choice = input("\nChoose a FSM to export: ")
             
             fsm = None
             if fsm_choice == "1":
@@ -505,10 +502,10 @@ def main():
             elif fsm_choice == "4":
                 fsm = create_intercept_fsm()
             else:
-                print("Choix invalide.")
+                print("Invalid choice.")
                 continue
             
-            filename = input("Nom du fichier d'exportation (défaut: fsm_export.txt): ")
+            filename = input("Export filename (default: fsm_export.txt): ")
             if not filename:
                 filename = "fsm_export.txt"
             
@@ -518,11 +515,11 @@ def main():
             show_help_and_glossary()
         
         elif choice == "5":
-            print("Merci d'avoir utilisé le système de planification d'actions robotiques!")
+            print("Thank you for using the robotic action planning system!")
             break
         
         else:
-            print("Option non valide. Veuillez réessayer.")
+            print("Invalid option. Please try again.")
 
 if __name__ == "__main__":
     main()
