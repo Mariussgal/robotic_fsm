@@ -2,7 +2,7 @@ from fsm import FSM, State, Transition
 import random
 import robot_actions as ra
 
-def create_simple_pass_fsm():
+def create_simple_pass_fsm(target_robot="R2"):
     initial = State("INITIAL", None)
     go_to_ball_state = State("GO_TO_BALL", lambda e: ra.go_to_ball("R1"))
     align_state = State("ALIGN", lambda e: ra.align_with_target("R1", "R2"))
@@ -141,7 +141,7 @@ def create_fsm_from_instruction(instruction):
             if f"r{i}" in instruction:
                 target = f"R{i}"
                 break
-        return create_pass_fsm(), f"Pass to robot {target}"
+        return create_pass_fsm(target), f"Pass to robot {target}"
     
     elif "shoot" in instruction or "goal" in instruction:
         return create_shoot_fsm(), "Shoot at goal"
@@ -373,11 +373,11 @@ def export_fsm_to_text(fsm, filename="fsm_export.txt"):
     
     print(f"FSM successfully exported to file '{filename}'")
 
-def create_pass_fsm():
+def create_pass_fsm(target_robot="R2"):
     """
     Alias for create_simple_pass_fsm
     """
-    return create_simple_pass_fsm()
+    return create_simple_pass_fsm(target_robot)
 
 def main():
     """Main program function"""
