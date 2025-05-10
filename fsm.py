@@ -67,8 +67,7 @@ class FSM:
         self.states[state.name] = state
     
     def process_event(self, event):
-        """
-        Process an event and perform the appropriate transition.
+        """Process an event and perform the appropriate transition.
         
         Args:
             event (str): Event to process
@@ -92,23 +91,11 @@ class FSM:
         if not possible_transitions:
             return False
         
-        if event in ["GOAL_SCORED", "BALL_RECEIVED", "BLOCKING_EFFECTIVE", "BALL_INTERCEPTED"]:
-            for transition in possible_transitions:
-                if transition.target_state.is_final and transition.target_state.is_success:
-                    self.current_state = transition.target_state
-                    return True
-        
-        if event in ["SHOT_MISSED", "PASS_FAILED", "BLOCKING_INEFFECTIVE", "INTERCEPTION_MISSED"]:
-            for transition in possible_transitions:
-                if transition.target_state.is_final and not transition.target_state.is_success:
-                    self.current_state = transition.target_state
-                    return True
-        
+        # Just take the first matching transition
         transition = possible_transitions[0]
-        
         self.current_state = transition.target_state
         
-        return False
+        return self.current_state.is_final
     
     def reset(self):
         """Reset the FSM to its initial state"""

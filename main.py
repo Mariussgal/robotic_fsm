@@ -343,43 +343,14 @@ def simulate_fsm(fsm, action_type):
         
         print(f"Event sent: {event}")
         
-        random.seed(0)  
+        final_reached = fsm.process_event(event)
         
-        print(f"Current state: {fsm.current_state.name}")
-        
-        if fsm.current_state.name != expected_state:
-            print(f"Note: Transition to {expected_state} did not occur as expected.")
-            print("This may be due to transition probability or incorrect condition.")
-            
-            if input("Do you want to force transition to expected state? (y/n): ").lower() == "y":
-                if expected_state in fsm.states:
-                    fsm.current_state = fsm.states[expected_state]
-                    print(f"Current state forced to: {fsm.current_state.name}")
+        print(f"State after event: {fsm.current_state.name}")
         
         if fsm.current_state.is_final:
             result = "Success" if fsm.current_state.is_success else "Failure"
             print(f"Simulation ended: {result}")
             break
-    
-    if not fsm.current_state.is_final:
-        print("\nEvent sequence is complete, but FSM has not reached a final state.")
-        
-        final_states = [name for name, state in fsm.states.items() if state.is_final]
-        
-        if final_states and input("Do you want to force a final state? (y/n): ").lower() == "y":
-            print("\nAvailable final states:")
-            for i, name in enumerate(final_states):
-                state = fsm.states[name]
-                result = "Success" if state.is_success else "Failure"
-                print(f"{i+1}. {name} ({result})")
-            
-            try:
-                choice = int(input("\nChoose a final state: "))
-                if 1 <= choice <= len(final_states):
-                    fsm.current_state = fsm.states[final_states[choice-1]]
-                    print(f"Final state forced to: {fsm.current_state.name}")
-            except ValueError:
-                print("Invalid choice.")
     
     print("\nState history:")
     print(" -> ".join(fsm.history + [fsm.current_state.name]))
