@@ -1,4 +1,0 @@
-=== Finite State Machine Export ===
-
-States:
-  - ('INITIAL', <fsm.State object at 0x0000020DCE462390>)

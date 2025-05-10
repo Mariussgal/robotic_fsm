@@ -363,7 +363,7 @@ def export_fsm_to_text(fsm, filename="fsm_export.txt"):
         f.write("=== Finite State Machine Export ===\n\n")
         
         f.write("States:\n")
-        for state in fsm.states.items():
+        for name,state in fsm.states.items():
             f.write(f"  - {state}\n")
             
             for i, transition in enumerate(state.transitions):
